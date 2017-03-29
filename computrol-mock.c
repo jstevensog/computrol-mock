@@ -178,7 +178,9 @@ void wakeup(void)
 
 void set_alarm(int num)
 {
-	mb_mapping->tab_registers[3] = num;
+	int tmpval = 0;
+	tmpval = (num << 1);
+	mb_mapping->tab_registers[3] |= (tmpval & 0x1f);
 	printf("Setting register 3 to %i\r\n", mb_mapping->tab_registers[3]);
 	return;
 }

@@ -31,6 +31,12 @@ You can also simulate a "report by exception" alarm by using a command similar t
 ```
 pkill -SIGRTMIN+1 computrol-mock
 ```
+The program will set register 3 alarm bits based on the SIGRTMIN+x value.
+SIGRTMIN+1 - Level 1 Current Alarm, 001 in bits 1-3 (note bit 0 is ignored).
+...
+SIGRTMIN+4 - Level 4 Current Alarm, 100 in bits 1-3.
+SIGRTMIN+5 - Voltage Low Alarm, Bit 4.
+
 This will cause computrol-mock to assert the WAKEUP pin on the GT board, and it will wait for the AWAKE pin to be asserted before transmitting.
 
 You can stop computrol-mock using Ctrl-C in a console if you are running it in the foreground, or pkill computrol-mock if it is running in the background.
