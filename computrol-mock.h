@@ -38,8 +38,9 @@ const uint8_t INPUT_BITS_TAB[] = { 0xAC, 0xDB, 0x35 };
 const uint16_t REGISTERS_ADDRESS = 0x0;
 const uint16_t REGISTERS_NB = 0x80;
 const uint16_t REGISTERS_NB_MAX = 0x80;
-const uint16_t REGISTERS_TAB[] = { 0x0000, 0x0000, 0x0033,
-								   0x0000, 0x0000};
+const uint16_t REGISTERS_TAB[] = { 0x0000, 0x0000, 0x0005, 0x0000, 0x0000,
+								   0x0000, 0x0000, 0xffff, 0x0000, 0x0000, 
+								   0x0000, 0x0000, 0x00ff, 0x0000, 0x0000};
 
 /* Raise a manual exception when this address is used for the first byte */
 const uint16_t REGISTERS_ADDRESS_SPECIAL = 0x170;

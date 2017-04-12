@@ -18,34 +18,32 @@ modbus_mapping_t *mb_mapping;
 //signal handler
 void sig_handler(int signo)
 {
-	//if (signo == SIGUSR1)
 	if (signo == SIGRTMIN+1)
 	{
-		printf("Setting Current Alarm 1, and waking GT. \r\n");
+		printf("Received Current Alarm 1 signal. \r\n");
 		set_alarm(0x01);
 	}
 	//if (signo == SIGUSR2)
 	if (signo == SIGRTMIN+2)
 	{
-		printf("Setting Current Alarm 2, and waking GT. \r\n");
+		printf("Received Current Alarm 2 signal. \r\n");
 		set_alarm(0x02);
 	}
 	if (signo == SIGRTMIN+3)
 	{
-		printf("Setting Current Alarm 3, and waking GT. \r\n");
+		printf("Received Current Alarm 3 signal. \r\n");
 		set_alarm(0x03);
 	}
 	if (signo == SIGRTMIN+4)
 	{
-		printf("Setting Current Alarm 4, and waking GT. \r\n");
+		printf("Received Voltage Low Alarm signal. \r\n");
 		set_alarm(0x04);
 	}
 	if (signo == SIGRTMIN+5)
 	{
-		printf("Setting Voltage Low Alarm, and waking GT. \r\n");
+		printf("Received Voltage Normal Alarm signal. \r\n");
 		set_alarm(0x08);
 	}
-	digitalWrite(17, true);
 }
 int main(int argc, char*argv[])
 {
@@ -83,11 +81,7 @@ int main(int argc, char*argv[])
         return -1;
     }
 	//set up signal handler
-/*	if (signal(SIGUSR1, sig_handler) == SIG_ERR)
-        printf("\ncan't catch SIGUSR1\n");
-	if (signal(SIGUSR2, sig_handler) == SIG_ERR)
-        printf("\ncan't catch SIGUSR2\n");
-*/	if (signal(SIGRTMIN+1, sig_handler) == SIG_ERR)
+	if (signal(SIGRTMIN+1, sig_handler) == SIG_ERR)
         printf("\ncan't catch SIGRTMIN+1\n");
 	if (signal(SIGRTMIN+2, sig_handler) == SIG_ERR)
         printf("\ncan't catch SIGRTMIN+2\n");
@@ -180,7 +174,11 @@ void set_alarm(int num)
 {
 	int tmpval = 0;
 	tmpval = (num << 1);
-	mb_mapping->tab_registers[3] |= (tmpval & 0x1f);
-	printf("Setting register 3 to %i\r\n", mb_mapping->tab_registers[3]);
+	if((mb_mapping->tab_registers[7] && tmpval) != 0)
+	{
+		printf("Setting register 3 to %i\r\nWaking GT.\r\n", mb_mapping->tab_registers[3]);
+		mb_mapping->tab_registers[3] |= (tmpval & 0x1f);
+		digitalWrite(17, true);
+	}
 	return;
 }
