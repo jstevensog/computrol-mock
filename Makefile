@@ -14,7 +14,7 @@ modbus-data.o: $(MODBUS)/modbus-data.c
 modbus-rtu.o: $(MODBUS)/modbus-rtu.c $(MODBUS)/modbus-rtu.h $(MODBUS)/modbus-rtu-private.h
 	$(CC) $(CFLAGS) -c $(MODBUS)/modbus-rtu.c
 
-computrol-mock: computrol-mock.c modbus-data.o modbus-rtu.o modbus.o
+computrol-mock: computrol-mock.c computrol-mock.h modbus-data.o modbus-rtu.o modbus.o
 	$(CC) $(CFLAGS) computrol-mock.c -o computrol-mock modbus-rtu.o modbus-data.o modbus.o
 
 clean:

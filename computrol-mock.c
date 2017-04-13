@@ -7,12 +7,14 @@
 #include <modbus.h>
 #include <sys/socket.h>
 #include <signal.h>
+#include <ctype.h>
 #include "wiringPi.h"
 #include "computrol-mock.h"
 
 static bool awake = false;
 void wakeup(void);
 void set_alarm(int num);
+void reset_rbe(void);
 modbus_mapping_t *mb_mapping;
 
 //signal handler
@@ -44,6 +46,11 @@ void sig_handler(int signo)
 		printf("Received Voltage Normal Alarm signal. \r\n");
 		set_alarm(0x08);
 	}
+	if (signo == SIGRTMIN+6)
+	{
+		printf("Received reset LFI RBE address. \r\n");
+		reset_rbe();
+	}
 }
 int main(int argc, char*argv[])
 {
@@ -52,6 +59,9 @@ int main(int argc, char*argv[])
     int i;
     uint8_t *query;
     int header_length;
+	char *dev = NULL;
+	char default_dev[] = "/dev/ttyUSB0";
+	int c;
 
 	//Initialise wiringPi
 	if(wiringPiSetupGpio())
@@ -62,7 +72,30 @@ int main(int argc, char*argv[])
 	pinMode(17,OUTPUT);
 	pinMode(27,INPUT);
 	wiringPiISR (27, INT_EDGE_BOTH, &wakeup);
-    ctx = modbus_new_rtu("/dev/ttyUSB0", 9600, 'N', 8, 1);
+	while((c = getopt(argc, argv, "D::")) != -1)
+	{
+		switch (c)
+		{
+			case 'D':
+				dev = optarg;
+				break;
+			case '?':
+				if (optopt == 'D')
+				{
+					fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+				}
+				else if (isprint (optopt))
+					fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+				else
+					fprintf (stderr, "Unknown option character `\\x%x'.\n",	optopt);
+				return 1;
+			default:
+				abort ();
+		}
+	}
+	if(!dev)
+		dev = default_dev;
+    ctx = modbus_new_rtu(dev, 9600, 'N', 8, 1);
     modbus_set_slave(ctx, SERVER_ID);
     query = malloc(MODBUS_RTU_MAX_ADU_LENGTH);
     header_length = modbus_get_header_length(ctx);
@@ -91,6 +124,8 @@ int main(int argc, char*argv[])
         printf("\ncan't catch SIGRTMIN+4\n");
 	if (signal(SIGRTMIN+5, sig_handler) == SIG_ERR)
         printf("\ncan't catch SIGRTMIN+5\n");
+	if (signal(SIGRTMIN+6, sig_handler) == SIG_ERR)
+        printf("\ncan't catch SIGRTMIN+6\n");
 
 
     /* Examples from PI_MODBUS_300.pdf.
@@ -180,5 +215,12 @@ void set_alarm(int num)
 		mb_mapping->tab_registers[3] |= (tmpval & 0x1f);
 		digitalWrite(17, true);
 	}
+	return;
+}
+
+void reset_rbe(void)
+{
+	printf("Setting register 12 to 255\r\n");
+	mb_mapping->tab_registers[12] = 0x00ff;
 	return;
 }
