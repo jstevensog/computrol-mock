@@ -26,7 +26,10 @@ You should also ensure that the WAKEUP and AWAKE pins on the GT board are connec
 
 # Working with it.
 
-computrol-mock is an executable binary, currently with a single optional -D path_to_serial_device option.  
+computrol-mock is an executable binary.
+It has the following options:
+-D path_to_serial_device option.  
+-B baud_rate (default 9600).
 
 Note: the -D option defaults to /dev/ttyUSB0, so if that is the port you have connected to the GT tx/rx pins, you do not need to specify it.
 

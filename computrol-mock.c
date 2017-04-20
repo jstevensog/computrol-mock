@@ -60,6 +60,7 @@ int main(int argc, char*argv[])
     uint8_t *query;
     int header_length;
 	char *dev = NULL;
+	int spd = 9600;
 	char default_dev[] = "/dev/ttyUSB0";
 	int c;
 
@@ -79,6 +80,9 @@ int main(int argc, char*argv[])
 			case 'D':
 				dev = optarg;
 				break;
+			case 'B':
+				spd = atoi(optarg);
+				break;
 			case '?':
 				if (optopt == 'D')
 				{
@@ -95,7 +99,7 @@ int main(int argc, char*argv[])
 	}
 	if(!dev)
 		dev = default_dev;
-    ctx = modbus_new_rtu(dev, 9600, 'N', 8, 1);
+    ctx = modbus_new_rtu(dev, spd, 'N', 8, 1);
     modbus_set_slave(ctx, SERVER_ID);
     query = malloc(MODBUS_RTU_MAX_ADU_LENGTH);
     header_length = modbus_get_header_length(ctx);
