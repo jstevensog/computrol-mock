@@ -73,7 +73,7 @@ int main(int argc, char*argv[])
   pinMode(17,OUTPUT);
   pinMode(27,INPUT);
   wiringPiISR (27, INT_EDGE_BOTH, &wakeup);
-  while((c = getopt(argc, argv, "D::")) != -1)
+  while((c = getopt(argc, argv, "D:B:")) != -1)
   {
     switch (c)
     {
