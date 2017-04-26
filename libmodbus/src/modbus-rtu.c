@@ -1169,14 +1169,16 @@ static int _modbus_rtu_select(modbus_t *ctx, fd_set *rset,
             FD_ZERO(rset);
             FD_SET(ctx->s, rset);
         } else {
-            return -1;
+//            return -1;
+            return s_rc;
         }
     }
 
     if (s_rc == 0) {
         /* Timeout */
         errno = ETIMEDOUT;
-        return -1;
+        //return -1;
+        return -2;
     }
 #endif
 

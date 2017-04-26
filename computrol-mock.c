@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <signal.h>
 #include <ctype.h>
+#include <fcntl.h>
 #include "wiringPi.h"
 #include "computrol-mock.h"
 
@@ -15,6 +16,7 @@ static bool awake = false;
 void wakeup(void);
 void set_alarm(int num);
 void reset_rbe(void);
+void do_cmd(void);
 modbus_mapping_t *mb_mapping;
 
 //signal handler
@@ -160,9 +162,10 @@ int main(int argc, char*argv[])
   {
     do 
     {
-       rc = modbus_receive(ctx, query);
-       /* Filtered queries return 0 */
-    } while (rc == 0 && !awake);
+      do_cmd();
+      rc = modbus_receive(ctx, query);
+      /* Filtered queries return 0 */
+    } while (( rc == -2 || rc == 0 )  && !awake);
 
     /* The connection is not closed on errors which require on reply such as
        bad CRC in RTU. */
@@ -184,10 +187,6 @@ int main(int argc, char*argv[])
     if (rc == -1) 
     {
             break;
-    }
-      
-     for (i=13; i < REGISTERS_NB_MAX; i++) {
-      mb_mapping->tab_registers[i]++ ;
     }
   }
 
@@ -227,4 +226,33 @@ void reset_rbe(void)
   printf("Setting register 12 to 255\r\n");
   mb_mapping->tab_registers[12] = 0x00ff;
   return;
+}
+
+int get_cmd(void)
+{
+  fd_set fds;
+  int r = 0;
+  struct timeval tv = {0L, 0L};
+  FD_ZERO(&fds);
+  FD_SET(0, &fds);
+  r = select(1, &fds, NULL, NULL, &tv);
+  return r;
+}
+
+void do_cmd(void)
+{
+  int sval = 0;
+  int rval = 0;
+  char cmd;
+  char cmd_buf[128] = {0};
+  if(get_cmd())
+  {
+    read(1, &cmd_buf,sizeof(cmd_buf)); 
+    sscanf(cmd_buf, "%[RW] %i %i", &cmd, &rval, &sval);
+    if( cmd == 'W' )
+    {
+      mb_mapping->tab_registers[rval] = sval;
+    }
+    printf("Reg %i = %i\r\n", rval, mb_mapping->tab_registers[rval]);
+  }
 }

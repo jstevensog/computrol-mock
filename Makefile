@@ -1,7 +1,7 @@
 
 CC = gcc
 MODBUS = libmodbus/src
-CFLAGS = -Wall -g -I/usr/include -Ilibmodbus -I$(MODBUS) -I/usr/local/include -L/usr/local/lib -lwiringPi
+CFLAGS = -Wall -ggdb -I/usr/include -Ilibmodbus -I$(MODBUS) -I/usr/local/include -L/usr/local/lib -lwiringPi
 CXXFLAGS = $(CFLAGS)
 
 all: modbus.o modbus-rtu.o computrol-mock.o computrol-mock

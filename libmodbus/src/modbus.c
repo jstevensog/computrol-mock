@@ -347,13 +347,14 @@ int _modbus_receive_msg(modbus_t *ctx, uint8_t *msg, msg_type_t msg_type)
     int msg_length = 0;
     _step_t step;
 
-    if (ctx->debug) {
+/*    if (ctx->debug) {
         if (msg_type == MSG_INDICATION) {
             printf("Waiting for a indication...\n");
         } else {
             printf("Waiting for a confirmation...\n");
         }
     }
+*/
 
     /* Add a file descriptor to the set */
     FD_ZERO(&rset);
@@ -368,7 +369,13 @@ int _modbus_receive_msg(modbus_t *ctx, uint8_t *msg, msg_type_t msg_type)
     if (msg_type == MSG_INDICATION) {
         /* Wait for a message, we don't know when the message will be
          * received */
-        p_tv = NULL;
+        //p_tv = NULL;
+        /* Just peek to see if there is a char waiting
+         * return 0 if not */
+         tv.tv_sec = 0;
+         tv.tv_usec = 0;
+         p_tv = &tv;
+
     } else {
         tv.tv_sec = ctx->response_timeout.tv_sec;
         tv.tv_usec = ctx->response_timeout.tv_usec;
@@ -377,6 +384,12 @@ int _modbus_receive_msg(modbus_t *ctx, uint8_t *msg, msg_type_t msg_type)
 
     while (length_to_read != 0) {
         rc = ctx->backend->select(ctx, &rset, p_tv, length_to_read);
+        /* this is non-blocking */
+        if (rc == -2)
+        {
+          return rc;
+        }
+
         if (rc == -1) {
             _error_print(ctx, "select");
             if (ctx->error_recovery & MODBUS_ERROR_RECOVERY_LINK) {

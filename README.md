@@ -31,7 +31,7 @@ It has the following options:
 -D path_to_serial_device option.  
 -B baud_rate (default 9600).
 
-Note: the -D option defaults to /dev/ttyUSB0, so if that is the port you have connected to the GT tx/rx pins, you do not need to specify it.
+Note: the -D option defaults to /dev/ttyUSB0, so if that is the port you have connected to the GT tx/rx pins, you do not need to specify it. The -B option MUST be a valid baudrate, or an error message will be printed.
 
 When you run it, it will report what it is doing to the console.
 You will see inbound and outbound modbus messages, and any issues with them.  
@@ -50,6 +50,7 @@ to run in the foreground, or if you wish to run it in the background to reduce t
 sudo compurol-mock -D /dev/ttyUSB1 &
 ```
 
+NOTE: Runing in the foreground will prevent computrol-mock receiving register commands (see below) from the console.  I will be soon adding a file socket to allow commands to be sent when computrol-mock is running in the background.
 
 As it was initially used to test the protocol in the LFI app for GT, every time a request is received from the GT board, holding registers >13 are incremented.
 
@@ -74,6 +75,12 @@ Additionally, the program will receive SIGRTMIN+6.  This will cause the Register
 Use this to save killing and restarting computrol-mock when you wish to test that gt_startup correctly sets this to 0.
 
 You can stop computrol-mock using Ctrl-C in a console if you are running it in the foreground, or sudo pkill computrol-mock if it is running in the background.
+
+# Register Commands
+The following Register commands are accepted on the console.
+
+1. R X - where X is the register number. Reads the current register value.
+2. W X V - where X is the register number, and V is the value to be set.  Writes the value to the specified register, and displays the result.
 
 That is it for now.  Any requests for additional functionality or changes, get in touch, or do it yourself, and remember to push up to the repo. ;)
 
