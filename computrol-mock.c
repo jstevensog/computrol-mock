@@ -256,3 +256,111 @@ void do_cmd(void)
     printf("Reg %i = %i\r\n", rval, mb_mapping->tab_registers[rval]);
   }
 }
+
+void do_alarms(void)
+{
+	static int level1time = 0;
+	static int level2time = 0;
+	static int level3time = 0;
+	static int level4time = 0;
+	static int lowvolttime = 0;
+	static int normvolttime = 0;
+	static int lastms;
+
+	if(!lastms) {
+		lastms = millis();
+	}
+	// check current levels
+	// Level 1
+	if( mb_mapping-> tab_registers[20 + mb_mapping->tab_registers[7]] > 0 &&
+		mb_mapping->tab_registers[100] > mb_mapping->tab_registers[20 + mb_mapping->tab_registers[7]] )
+	{
+		level1time += millis() - lastms;
+		if (level1time > mb_mapping->tab_registers[60 + mb_mapping->tab_registers[7]] &&
+			(mb_mapping->tab_registers[3] & 0x0008) == 0) {
+			mb_mapping->tab_registers[3] |= 0x0008;
+		}
+		else
+		{
+			mb_mapping->tab_registers[3] &= 0xfff7;
+			level1time = 0;
+		}
+	}
+	// Level 2
+	if( mb_mapping-> tab_registers[21 + mb_mapping->tab_registers[7]] > 0 &&
+		mb_mapping->tab_registers[100] > mb_mapping->tab_registers[21 + mb_mapping->tab_registers[7]] )
+	{
+		level2time += millis() - lastms;
+		if (level2time > mb_mapping->tab_registers[61 + mb_mapping->tab_registers[7]] &&
+			(mb_mapping->tab_registers[3] & 0x0004) == 0) {
+			mb_mapping->tab_registers[3] |= 0x0004;
+		}
+		else
+		{
+			mb_mapping->tab_registers[3] &= 0xfffb;
+			level2time = 0;
+		}
+	}
+	// Level 3
+	if( mb_mapping-> tab_registers[22 + mb_mapping->tab_registers[7]] > 0 &&
+		mb_mapping->tab_registers[100] > mb_mapping->tab_registers[22 + mb_mapping->tab_registers[7]] )
+	{
+		level3time += millis() - lastms;
+		if (level3time > mb_mapping->tab_registers[60 + mb_mapping->tab_registers[7]] &&
+			(mb_mapping->tab_registers[3] & 0x000c) == 0) {
+			mb_mapping->tab_registers[3] |= 0x000c;
+		}
+		else
+		{
+			mb_mapping->tab_registers[3] &= 0xfff9;
+			level3time = 0;
+		}
+	}
+	// Level 4
+	if( mb_mapping-> tab_registers[23 + mb_mapping->tab_registers[7]] > 0 &&
+		mb_mapping->tab_registers[100] > mb_mapping->tab_registers[23 + mb_mapping->tab_registers[7]] )
+	{
+		level4time += millis() - lastms;
+		if (level4time > mb_mapping->tab_registers[60 + mb_mapping->tab_registers[7]] &&
+			(mb_mapping->tab_registers[3] & 0x0002) == 0) {
+			mb_mapping->tab_registers[3] |= 0x0002;
+		}
+		else
+		{
+			mb_mapping->tab_registers[3] &= 0xfffd;
+			level4time = 0;
+		}
+	}
+	// Voltage limits
+	// Low Voltage Limit
+	if( mb_mapping-> tab_registers[90] > 0 &&
+			mb_mapping->tab_registers[101] < mb_mapping->tab_registers[90] )
+	{
+		lowvolttime += millis() - lastms;
+		if (lowvolttime > mb_mapping->tab_registers[92] &&
+			(mb_mapping->tab_registers[3] & 0x0010) > 0) {
+			mb_mapping->tab_registers[3] |= 0x0010;
+		}
+		else
+		{
+			mb_mapping->tab_registers[3] &= 0xffef;
+			lowvolttime = 0;
+		}
+	}
+	//Normal Voltage Limit
+	if( mb_mapping-> tab_registers[91] > 0 &&
+			mb_mapping->tab_registers[101] < mb_mapping->tab_registers[91] )
+	{
+		normvolttime += millis() - lastms;
+		if (normvolttime > mb_mapping->tab_registers[93] &&
+			(mb_mapping->tab_registers[3] & 0x0020) > 0) {
+			mb_mapping->tab_registers[3] |= 0x0020;
+		}
+		else
+		{
+			mb_mapping->tab_registers[3] &= 0xffcf;
+			normvolttime = 0;
+		}
+	}
+
+}
