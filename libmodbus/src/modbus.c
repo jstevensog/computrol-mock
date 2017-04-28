@@ -349,7 +349,7 @@ int _modbus_receive_msg(modbus_t *ctx, uint8_t *msg, msg_type_t msg_type)
 
     if (ctx->debug) {
         if (msg_type == MSG_INDICATION) {
-            printf("Waiting for a indication...\n");
+            //printf("Waiting for a indication...\n");
         } else {
             printf("Waiting for a confirmation...\n");
         }
@@ -372,7 +372,7 @@ int _modbus_receive_msg(modbus_t *ctx, uint8_t *msg, msg_type_t msg_type)
         /* Just peek to see if there is a char waiting
          * return 0 if not */
          tv.tv_sec = 0;
-         tv.tv_usec = 0;
+         tv.tv_usec = 10000;
          p_tv = &tv;
 
     } else {
