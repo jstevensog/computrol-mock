@@ -1169,8 +1169,8 @@ static int _modbus_rtu_select(modbus_t *ctx, fd_set *rset,
             FD_ZERO(rset);
             FD_SET(ctx->s, rset);
         } else {
-//            return -1;
-            return s_rc;
+        	return -1;
+            //return s_rc;
         }
     }
 

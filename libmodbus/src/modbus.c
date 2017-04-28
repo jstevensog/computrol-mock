@@ -347,14 +347,13 @@ int _modbus_receive_msg(modbus_t *ctx, uint8_t *msg, msg_type_t msg_type)
     int msg_length = 0;
     _step_t step;
 
-/*    if (ctx->debug) {
+    if (ctx->debug) {
         if (msg_type == MSG_INDICATION) {
             printf("Waiting for a indication...\n");
         } else {
             printf("Waiting for a confirmation...\n");
         }
     }
-*/
 
     /* Add a file descriptor to the set */
     FD_ZERO(&rset);
