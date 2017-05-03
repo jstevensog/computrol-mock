@@ -18,6 +18,7 @@
 #define FIFO "cm-fifo"
 
 static bool awake = false;
+static bool ignore_wake = false;
 void wakeup(void);
 void do_cmd(void);
 void do_alarms(void);
@@ -57,7 +58,7 @@ int main(int argc, char*argv[])
 	pinMode(17,OUTPUT);
 	pinMode(27,INPUT);
 	wiringPiISR (27, INT_EDGE_BOTH, &wakeup);
-	while((c = getopt(argc, argv, "D:B:")) != -1)
+	while((c = getopt(argc, argv, "D:B:i")) != -1)
 	{
 		switch (c)
 		{
@@ -66,6 +67,10 @@ int main(int argc, char*argv[])
 			break;
 		case 'B':
 			spd = atoi(optarg);
+			break;
+		case 'i':
+			//ignore the awake signal, respond to all requests.
+			ignore_wake = true;
 			break;
 		case '?':
 			if (optopt == 'D')
@@ -141,7 +146,7 @@ int main(int argc, char*argv[])
 			}
 			do_cmd();
 			do_alarms();
-			if(awake) {
+			if(awake || ignore_wake) {
 				rc = modbus_receive(ctx, query);
 			}
 			/* Filtered queries return 0 */

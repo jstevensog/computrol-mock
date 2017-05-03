@@ -28,12 +28,15 @@ You should also ensure that the WAKEUP and AWAKE pins on the GT board are connec
 
 computrol-mock is an executable binary.
 It has the following options:
--D path_to_serial_device option.
+-D path_to_serial_device option (default /dev/ttyUSB0).
 -B baud_rate (default 9600).
+-i ignore awake signal from GT board.  Respond to every request regardless of the the status of this signal.
 
 Note: the -D option defaults to /dev/ttyUSB0, so if that is the port you have connected to the GT tx/rx pins, you do not need to specify it. The -B option MUST be a valid baudrate, or an error message will be printed.
 
-When you run it, it will report what it is doing to the console.
+Normally, the computrol-mock will only respond to messages it receives IF the awake signal from the GT board is asserted.  If you are need to test something that does NOT assert this signal, you can specify the -i option.
+
+When you run computrol-mock, it will report what it is doing to the console.
 You will see inbound and outbound modbus messages, and any issues with them.
 Inbound modbus messages are displayed in hex strings, with each octet surrounded by <>.
 Output hex strings are displayed with each octet surrounded by [].
