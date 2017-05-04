@@ -70,6 +70,7 @@ int main(int argc, char*argv[])
 			break;
 		case 'i':
 			//ignore the awake signal, respond to all requests.
+			fprintf(stderr, "Ignoring WAKEUP signal, responding to all requests.\r\n");
 			ignore_wake = true;
 			break;
 		case '?':
