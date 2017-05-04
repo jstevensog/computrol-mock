@@ -225,12 +225,13 @@ void do_cmd(void)
 	int sval = 0;
 	int rval = 0;
 	char cmd;
-	char cmd_buf[128] = {0};
+	char cmd_buf[1024] = {0};
 	char *data = cmd_buf;
 	fd_set fds;
 	int max_fd;
 	unsigned int offset = 0;
 	struct timeval tv = {0L, 0L};
+	bool write = false;
 
 	FD_ZERO(&fds);
 	FD_SET(fileno(stdin), &fds);
@@ -250,31 +251,44 @@ void do_cmd(void)
 		}
 		FD_SET(fileno(stdin), &fds);
 		FD_SET(fifo_fd, &fds);
-		while (sscanf(data, "%[RWVIT] %i %i%n", &cmd, &rval, &sval, &offset) > 0)
+		//while (sscanf(data, "%[RWVIT] %i %i\n%n", &cmd, &rval, &sval, &offset) > 0)
+		while (data[0] != 0 && data[0] != '\n')
 		{
-			data += offset+1;
-			//if (cmd_buf[offset] == "\n") ++data;
-			if (cmd == 'V' || cmd == 'I' || cmd == 'T')
+			switch (data[0])
 			{
-				sval = rval;
-				switch (cmd)
-				{
-				case 'V':
-					rval = 101;
-					break;
-				case 'I':
-					rval = 100;
-					break;
-				case 'T':
-					rval = 84;
-				}
-				cmd = 'W';
+			case 'V':
+				sscanf(data, "V %i%n", &sval, &offset);
+				rval = 101;
+				write = true;
+				break;
+			case 'I':
+				sscanf(data, "I %i%n", &sval, &offset);
+				rval = 100;
+				write = true;
+				break;
+			case 'T':
+				sscanf(data, "T %i%n", &sval, &offset);
+				rval = 84;
+				write = true;
+				break;
+			case 'W':
+				sscanf(data, "W %i %i%n", &rval, &sval, &offset);
+				write = true;
+				break;
+			case 'R':
+				sscanf(data, "R %i%n", &rval, &offset);
+				break;
 			}
-			if( cmd == 'W' )
+			if( write )
 			{
 				mb_mapping->tab_registers[rval] = sval;
+				write = false;
 			}
 			printf("Reg %i = %i\r\n", rval, mb_mapping->tab_registers[rval]);
+			data += offset+1;
+			cmd = 0;
+			rval = 0;
+			sval = 0;
 		}
 	}
 }
@@ -363,33 +377,29 @@ void do_alarms(void)
 	{
 		lowvolttime += thisms;
 		if (lowvolttime > mb_mapping->tab_registers[92] &&
-				(mb_mapping->tab_registers[3] & 0x0010) > 0)
+				(mb_mapping->tab_registers[3] & 0x0010) == 0)
 		{
+			//clear normal voltage bit
+			mb_mapping->tab_registers[3] &= 0xffcf;
+			//set low voltage bit
 			mb_mapping->tab_registers[3] |= 0x0010;
+			normvolttime = 0;
 		}
-	}
-	else if( mb_mapping-> tab_registers[90] > 0 &&
-			mb_mapping->tab_registers[101] >= mb_mapping->tab_registers[90] )
-	{
-		mb_mapping->tab_registers[3] &= 0xffef;
-		lowvolttime = 0;
 	}
 	//Normal Voltage Limit
 	if( mb_mapping-> tab_registers[91] > 0 &&
-			mb_mapping->tab_registers[101] < mb_mapping->tab_registers[91] )
+			mb_mapping->tab_registers[101] >= mb_mapping->tab_registers[91] )
 	{
 		normvolttime += thisms;
 		if (normvolttime > mb_mapping->tab_registers[93] &&
-				(mb_mapping->tab_registers[3] & 0x0020) > 0)
+				(mb_mapping->tab_registers[3] & 0x0020) == 0)
 		{
+			//clear low voltage bit
+			mb_mapping->tab_registers[3] &= 0xffef;
+			//set normal voltage bit
 			mb_mapping->tab_registers[3] |= 0x0020;
+			lowvolttime = 0;
 		}
-	}
-	else if( mb_mapping-> tab_registers[91] > 0 &&
-			mb_mapping->tab_registers[101] >= mb_mapping->tab_registers[91] )
-	{
-		mb_mapping->tab_registers[3] &= 0xffcf;
-		normvolttime = 0;
 	}
 	if (mb_mapping->tab_registers[3] != last_r3)
 	{
